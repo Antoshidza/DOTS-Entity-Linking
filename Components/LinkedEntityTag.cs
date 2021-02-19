@@ -2,7 +2,7 @@
 
 namespace TonyMax.Extensions.DOTS.Linking.Components
 {
-    public struct LinkedEntityTag : IComponentData
+    internal struct LinkedEntityTag : IComponentData
     {
     }
 }

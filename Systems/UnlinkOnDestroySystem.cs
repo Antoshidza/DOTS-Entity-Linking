@@ -5,7 +5,7 @@ using Unity.Collections;
 namespace TonyMax.Extensions.DOTS.Linking.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-    public class UnlinkOnDestroySystem : SystemBase
+    internal class UnlinkOnDestroySystem : SystemBase
     {
         protected override void OnUpdate()
         {

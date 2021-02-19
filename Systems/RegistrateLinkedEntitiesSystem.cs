@@ -5,7 +5,7 @@ namespace TonyMax.Extensions.DOTS.Linking.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     [UpdateAfter(typeof(UnlinkOnDestroySystem))]
-    public class RegistrateLinkedEntitiesSystem : SystemBase
+    internal class RegistrateLinkedEntitiesSystem : SystemBase
     {
         private EntityCommandBufferSystem _ecbSystem;
         private EntityQuery _linkedTagNeedEntities;
