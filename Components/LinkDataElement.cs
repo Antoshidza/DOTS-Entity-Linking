@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace TonyMax.Extensions.DOTS.Linking.Components
+namespace TonyMax.Entities.Linking
 {
     public struct LinkDataElement : ISystemStateBufferElementData, IEquatable<Entity>
     {

@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace TonyMax.Extensions.DOTS.Linking.Components
+namespace TonyMax.Entities.Linking
 {
     internal struct LinkedEntityTag : IComponentData
     {

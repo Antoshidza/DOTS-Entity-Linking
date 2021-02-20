@@ -1,8 +1,7 @@
-﻿using TonyMax.Extensions.DOTS.Linking.Components;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Collections;
 
-namespace TonyMax.Extensions.DOTS.Linking.Systems
+namespace TonyMax.Entities.Linking
 {
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     internal class UnlinkOnDestroySystem : SystemBase

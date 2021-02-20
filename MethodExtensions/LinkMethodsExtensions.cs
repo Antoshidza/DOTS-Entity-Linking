@@ -1,8 +1,7 @@
-﻿using TonyMax.Extensions.DOTS.Linking.Components;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 
-namespace TonyMax.Extensions.DOTS.Linking
+namespace TonyMax.Entities.Linking
 {
     public static class LinkMethodsExtensions
     {
