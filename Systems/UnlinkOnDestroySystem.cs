@@ -10,17 +10,18 @@ namespace TonyMax.Extensions.DOTS.Linking.Systems
         protected override void OnUpdate()
         {
             //Unlink all from entity that being destroyed
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
             Entities
                 .WithNone<LinkedEntityTag>()
                 .ForEach((Entity unlinkingEntity, in DynamicBuffer<LinkDataElement> linkDataBuffer) =>
                 {
-                    var linkDataArray = linkDataBuffer.ToNativeArray(Allocator.Temp);
-                    for(int i = 0; i < linkDataArray.Length; i++)
+                    for(int i = 0; i < linkDataBuffer.Length; i++)
                     {
-                        var linkData = linkDataArray[i];
+                        var linkData = linkDataBuffer[i];
 
                         if(EntityManager.Exists(linkData.linkOwner))
-                            EntityManager.Unlink(linkData);
+                            ecb.Unlink(linkData);
                     }
 
                     EntityManager.RemoveComponent<LinkDataElement>(unlinkingEntity);
@@ -28,6 +29,8 @@ namespace TonyMax.Extensions.DOTS.Linking.Systems
                 .WithStructuralChanges()
                 .WithoutBurst()
                 .Run();
+
+            ecb.Playback(EntityManager);
         }
     }
 }

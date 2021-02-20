@@ -8,25 +8,11 @@ namespace TonyMax.Extensions.DOTS.Linking
     {
         #region Link
         #region EntityManager
-        /// <summary>
-        /// Registrate already added link.
-        /// When link is registrated there is a possible to unlink it.
-        /// </summary>
-        /// <param name="linkOwner">Entity which has link component</param>
-        /// <param name="linkType">Type of link component</param>
-        /// <param name="linkDataBuffer">Link buffer wich will store new link data</param>
-        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
-        public static void RegisterLink(this EntityManager entityManager,
-                                Entity linkOwner,
-                                ComponentType linkType,
-                                DynamicBuffer<LinkDataElement> linkDataBuffer,
-                                bool isRemovable = false)
-        {
-            linkDataBuffer.Add(new LinkDataElement { linkOwner = linkOwner, linkType = linkType, isRemovable = isRemovable });
-        }
+        #region Link
+        //Methods in this region just add already existed link to LinkDataElement buffer
 
         /// <summary>
-        /// Add given link to linkOwner entity and then registrate that link.
+        /// Registrate already exists link.
         /// When link is registrated there is a possible to unlink it.
         /// </summary>
         /// <param name="linkOwner">Entity which has link component</param>
@@ -34,82 +20,142 @@ namespace TonyMax.Extensions.DOTS.Linking
         /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
         public static void Link<TLink>(this EntityManager entityManager,
                                 Entity linkOwner,
-                                TLink link,
                                 DynamicBuffer<LinkDataElement> linkDataBuffer,
                                 bool isRemovable = false)
             where TLink : struct, IComponentData
         {
-            entityManager.AddComponentData(linkOwner, link);
-            entityManager.RegisterLink(linkOwner, ComponentType.ReadOnly<TLink>(), linkDataBuffer, isRemovable);
+#if UNITY_EDITOR
+            if(!entityManager.Exists(linkOwner))
+                throw new System.Exception($"You trying register link on {linkOwner} (owner) but entity doesn't exists.");
+#endif
+            linkDataBuffer.Add(new LinkDataElement { linkOwner = linkOwner, linkType = ComponentType.ReadOnly<TLink>(), isRemovable = isRemovable });
         }
-
         /// <summary>
-        /// Registrate already added link.
+        /// Registrate already exists link.
         /// When link is registrated there is a possible to unlink it.
         /// Also method will search LinkDataElement buffer on linked entity and if there isn't on it then will add buffer.
         /// <param name="linkOwner">Entity which has link component</param>
-        /// <param name="linkType">Type of link component</param>
         /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
-        public static void RegisterLink(this EntityManager entityManager,
+        public static void Link<TLink>(this EntityManager entityManager,
                                 Entity linkOwner,
-                                ComponentType linkType,
                                 Entity linkedEntity,
                                 bool isRemovable = false)
+            where TLink : struct, IComponentData
         {
-            var linkedEntityGroup = entityManager.HasComponent<LinkDataElement>(linkedEntity) ?
+            var linkDataBuffer = entityManager.HasComponent<LinkDataElement>(linkedEntity) ?
                 entityManager.GetBuffer<LinkDataElement>(linkedEntity) :
-                entityManager.AddBuffer<LinkDataElement>(linkedEntity);
+                entityManager.PrepareEntityForLinking(linkedEntity);
 
-            entityManager.RegisterLink(linkOwner, linkType, linkedEntityGroup, isRemovable);
-        }
-
-        /// <summary>
-        /// Add given link to linkOwner entity and then registrate that link.
-        /// When link is registrated there is a possible to unlink it.
-        /// Also method will search LinkDataElement buffer on linked entity and if there isn't on it then will add buffer.
-        /// </summary>
-        /// <param name="linkOwner">Entity which has link component</param>
-        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
-        public static void Link<TLink>(this EntityManager entityManager,
-                                Entity linkOwner,
-                                TLink link,
-                                Entity linkedEntity,
-                                bool isRemovable = false)
-            where TLink : struct, IComponentData
-        {
-            entityManager.AddComponentData(linkOwner, link);
-            entityManager.RegisterLink(linkOwner, ComponentType.ReadOnly<TLink>(), linkedEntity, isRemovable);
+            entityManager.Link<TLink>(linkOwner, linkDataBuffer, isRemovable);
         }
         #endregion
 
-        #region EntityCommandBuffer
+        #region Add Link
+        //Methods in this region will add link component to link's owner entity and then like methods in "Link" region
+        //will add link data to LinkDataElement buffer
+
         /// <summary>
-        /// Registrate already added link.
+        /// Add given link to linkOwner entity and then registrate that link.
         /// When link is registrated there is a possible to unlink it.
-        /// <para>Conditions:</para> 
-        /// <list type="bullet">
-        ///    <item>Linked entity has LinkDataElement buffer</item>
-        /// </list>
         /// </summary>
         /// <param name="linkOwner">Entity which has link component</param>
-        /// <param name="linkType">Type of link component</param>
+        /// <param name="linkDataBuffer">Link buffer wich will store new link data</param>
         /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
-        public static void RegisterLink(this ref EntityCommandBuffer ecb,
+        public static void AddLink<TLink>(this EntityManager entityManager,
                                 Entity linkOwner,
-                                ComponentType linkType,
-                                Entity linkedEntity,
+                                TLink link,
+                                DynamicBuffer<LinkDataElement> linkDataBuffer,
                                 bool isRemovable = false)
+            where TLink : struct, IComponentData
         {
 #if UNITY_EDITOR
-            
-            if(!World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<LinkDataElement>(linkedEntity))
-                throw new System.Exception($"You trying link {linkedEntity} to {linkOwner} (owner) but {linkedEntity} has no LinkDataElement buffer, which used to contain link data.");
+            if(!entityManager.Exists(linkOwner))
+                throw new System.Exception($"You trying add link on {linkOwner} (owner) but entity doesn't exists.");
 #endif
-            ecb.AppendToBuffer(linkedEntity, new LinkDataElement { linkOwner = linkOwner, linkType = linkType, isRemovable = isRemovable });
+            entityManager.AddComponentData(linkOwner, link);
+            entityManager.Link<TLink>(linkOwner, linkDataBuffer, isRemovable);
         }
 
         /// <summary>
         /// Add given link to linkOwner entity and then registrate that link.
+        /// When link is registrated there is a possible to unlink it.
+        /// Also method will search LinkDataElement buffer on linked entity and if there isn't on it then will add buffer.
+        /// </summary>
+        /// <param name="linkOwner">Entity which has link component</param>
+        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
+        public static void AddLink<TLink>(this EntityManager entityManager,
+                                Entity linkOwner,
+                                TLink link,
+                                Entity linkedEntity,
+                                bool isRemovable = false)
+            where TLink : struct, IComponentData
+        {
+#if UNITY_EDITOR
+
+            if(!entityManager.Exists(linkOwner))
+                throw new System.Exception($"You trying register link on {linkOwner} (owner) but entity doesn't exists.");
+#endif
+            entityManager.AddComponentData(linkOwner, link);
+            entityManager.Link<TLink>(linkOwner, linkedEntity, isRemovable);
+        }
+        #endregion
+
+        #region Set Link
+        //Methods in this region will set link component to link's owner entity and then like methods in "Link" region
+        //will add link data to LinkDataElement buffer
+
+        /// <summary>
+        /// Sets given link to linkOwner entity and then registrate that link.
+        /// When link is registrated there is a possible to unlink it.
+        /// </summary>
+        /// <param name="linkOwner">Entity which has link component</param>
+        /// <param name="linkDataBuffer">Link buffer wich will store new link data</param>
+        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
+        public static void SetLink<TLink>(this EntityManager entityManager,
+                                Entity linkOwner,
+                                TLink link,
+                                DynamicBuffer<LinkDataElement> linkDataBuffer,
+                                bool isRemovable = false)
+            where TLink : struct, IComponentData
+        {
+#if UNITY_EDITOR
+            if(!entityManager.Exists(linkOwner))
+                throw new System.Exception($"You trying register link on {linkOwner} (owner) but entity doesn't exists.");
+#endif
+            entityManager.SetComponentData(linkOwner, link);
+            entityManager.Link<TLink>(linkOwner, linkDataBuffer, isRemovable);
+        }
+
+        /// <summary>
+        /// Sets given link to linkOwner entity and then registrate that link.
+        /// When link is registrated there is a possible to unlink it.
+        /// Also method will search LinkDataElement buffer on linked entity and if there isn't on it then will add buffer.
+        /// </summary>
+        /// <param name="linkOwner">Entity which has link component</param>
+        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
+        public static void SetLink<TLink>(this EntityManager entityManager,
+                                Entity linkOwner,
+                                TLink link,
+                                Entity linkedEntity,
+                                bool isRemovable = false)
+            where TLink : struct, IComponentData
+        {
+#if UNITY_EDITOR
+            if(!entityManager.Exists(linkOwner))
+                throw new System.Exception($"You trying register link on {linkOwner} (owner) but entity doesn't exists.");
+#endif
+            entityManager.SetComponentData(linkOwner, link);
+            entityManager.Link<TLink>(linkOwner, linkedEntity, isRemovable);
+        }
+        #endregion
+        #endregion
+
+        #region EntityCommandBuffer
+        #region Link
+        //Methods in this region just add already existed link to LinkDataElement buffer
+
+        /// <summary>
+        /// Registrate already added link.
         /// When link is registrated there is a possible to unlink it.
         /// <para>Conditions:</para> 
         /// <list type="bullet">
@@ -120,19 +166,65 @@ namespace TonyMax.Extensions.DOTS.Linking
         /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
         public static void Link<TLink>(this ref EntityCommandBuffer ecb,
                                 Entity linkOwner,
+                                Entity linkedEntity,
+                                bool isRemovable = false)
+            where TLink : struct, IComponentData
+        {
+            ecb.AppendToBuffer(linkedEntity, new LinkDataElement { linkOwner = linkOwner, linkType = ComponentType.ReadOnly<TLink>(), isRemovable = isRemovable });
+        }
+        #endregion
+
+        #region Add Link
+        //Methods in this region will add link component to link's owner entity and then like methods in "Link" region
+        //will add link data to LinkDataElement buffer
+
+        /// <summary>
+        /// Add given link to linkOwner entity and then registrate that link.
+        /// When link is registrated there is a possible to unlink it.
+        /// <para>Conditions:</para> 
+        /// <list type="bullet">
+        ///    <item>Linked entity has LinkDataElement buffer</item>
+        /// </list>
+        /// </summary>
+        /// <param name="linkOwner">Entity which has link component</param>
+        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
+        public static void AddLink<TLink>(this ref EntityCommandBuffer ecb,
+                                Entity linkOwner,
                                 TLink link,
                                 Entity linkedEntity,
                                 bool isRemovable = false)
             where TLink : struct, IComponentData
         {
-#if UNITY_EDITOR
-
-            if(!World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<LinkDataElement>(linkedEntity))
-                throw new System.Exception($"You trying link {linkedEntity} to {linkOwner} (owner) but {linkedEntity} has no LinkDataElement buffer, which used to contain link data.");
-#endif
             ecb.AddComponent(linkOwner, link);
-            ecb.RegisterLink(linkOwner, ComponentType.ReadOnly<TLink>(), linkedEntity, isRemovable);
+            ecb.Link<TLink>(linkOwner, linkedEntity, isRemovable);
         }
+        #endregion
+
+        #region Set Link
+        //Methods in this region will set link component to link's owner entity and then like methods in "Link" region
+        //will add link data to LinkDataElement buffer
+
+        /// <summary>
+        /// Set given link to linkOwner entity and then registrate that link.
+        /// When link is registrated there is a possible to unlink it.
+        /// <para>Conditions:</para> 
+        /// <list type="bullet">
+        ///    <item>Linked entity has LinkDataElement buffer</item>
+        /// </list>
+        /// </summary>
+        /// <param name="linkOwner">Entity which has link component</param>
+        /// <param name="isRemovable">Defines link component will be removed or just reseted on unlink</param>
+        public static void SetLink<TLink>(this ref EntityCommandBuffer ecb,
+                                Entity linkOwner,
+                                TLink link,
+                                Entity linkedEntity,
+                                bool isRemovable = false)
+            where TLink : struct, IComponentData
+        {
+            ecb.SetComponent(linkOwner, link);
+            ecb.Link<TLink>(linkOwner, linkedEntity, isRemovable);
+        }
+        #endregion
         #endregion
         #endregion
 
@@ -270,6 +362,23 @@ namespace TonyMax.Extensions.DOTS.Linking
             return linkDataArray[index];
         }
         #endregion
+        #endregion
+
+        #region PrepareLinkedEntity
+        public static DynamicBuffer<LinkDataElement> PrepareEntityForLinking(this EntityManager entityManager, Entity entity, int bufferCapacity = 1)
+        {
+            entityManager.AddComponentData(entity, new LinkedEntityTag());
+            var linkDataBuffer = entityManager.AddBuffer<LinkDataElement>(entity);
+            linkDataBuffer.EnsureCapacity(bufferCapacity);
+
+            return linkDataBuffer;
+        }
+        public static void PrepareEntityForLinking(this ref EntityCommandBuffer ecb, Entity entity, int bufferCapacity = 1)
+        {
+            var linkDataBuffer = ecb.AddBuffer<LinkDataElement>(entity);
+            linkDataBuffer.EnsureCapacity(bufferCapacity);
+            ecb.AddComponent<LinkedEntityTag>(entity);
+        }
         #endregion
     }
 }
