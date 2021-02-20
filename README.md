@@ -46,15 +46,15 @@ In general there is two kind of methods:
 * **AddLink() / SetLink** - adds link data to LinkDataElement buffer and add/set link component to link's owner entity.
 * **Unlink()** - removes link data from LinkDataElement buffer and remove or reset link component on link's owner entity.
 
-But as you can see there is more then just two methods.
+But as you can see there is more then just three methods.
 Also methods vary by:
 * **LinkDataElement buffer accessing**: method can access buffer for you or you can pass buffer to method (to avoid non linear accessing for performance reasons).
 * **Link process**: there are actually three Link methods: Link()/AddLink()/SetLink(). First one not add or set any link component, just add data to buffer.
-* **Link provider**: you can use EntityManager to link entities immediately or use EntityCommandBuffer to make delayed addition.
+* **Link provider**: you can use EntityManager to link entities immediately or use EntityCommandBuffer to make delayed linking.
 
 ### Use recomendations
 * You can to not unlink entities by yourself because when linked entity dies clear system will automatically remove all links.
-But when this happens automatically clear system can't know do link owner entity still exists, so it will ask `EntityManager.Exists()`.
+But when this happens automatically clear system can't know does link owner entity still exists, so it will ask `EntityManager.Exists()`.
 So too many links can cause performance problems.
 * Some of methods assume that linked entity already have LinkDataElement buffer and LinkedEntityTag and won't check it.
 So if it's not then you will get accessing error (there is exceptions in code when you are in Debug).
