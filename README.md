@@ -41,8 +41,10 @@ ecb.AddLink(linkOwnerEntity, new Link { value = linkedEntity }, linkedEntity);
 * **Removing** - when entities are disconnected component that was used as link component will be removed from link's owner entity.
 * **Reseting** (default) - when entities are disconnected component that was used as link component will be reseted (remove and then add new).
 
-### Methods
-In general there is two kind of methods:
+### General methods information [DETAILS](MethodsTable.md)
+Most of all to do any linking or unlinking there is need to work with some link data. Package use own components. One you can access in LinkDataElement buffer which holds all link data which is required to be able to unlink entities. All this components are stored on linked entities (which one that refers with link component by other entities, which i called link owners). Some methods will search for those components and add it for you if need. Some components can get buffer from you instead of search it if you care about performance. Some methods assume that linked entity has those components and won't even check it, so in case linked entity has no component you will get accessing errors. Of course you can add components by yourself using EntityManager/EntityCommandBuffer .PrepareEntityForLinking(Entity) with linked entity. Please don't try to add it manually, because some components are internal.
+
+There is three kind of methods:
 * **AddLink() / SetLink** - adds link data to LinkDataElement buffer and add/set link component to link's owner entity.
 * **Unlink()** - removes link data from LinkDataElement buffer and remove or reset link component on link's owner entity.
 
