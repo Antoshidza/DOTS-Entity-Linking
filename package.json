@@ -1,6 +1,6 @@
 {
   "name": "com.tonymax.dots-entities-linking",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "DOTS Entities Linking",
   "description": "Extension that let you link entities by your component. Then you can unlink entities by removing or reseting component you used. When linkied entity is destroyed all links will be disconnected automatically.",
   "unity": "2020.2",

@@ -366,17 +366,17 @@ namespace TonyMax.Entities.Linking
         #region PrepareLinkedEntity
         public static DynamicBuffer<LinkDataElement> PrepareEntityForLinking(this EntityManager entityManager, Entity entity, int bufferCapacity = 1)
         {
-            entityManager.AddComponentData(entity, new LinkedEntityTag());
-            var linkDataBuffer = entityManager.AddBuffer<LinkDataElement>(entity);
+            entityManager.AddComponents(entity, new ComponentTypes(ComponentType.ReadOnly<LinkedEntityTag>(), ComponentType.ReadOnly<LinkDataElement>()));
+            var linkDataBuffer = entityManager.GetBuffer<LinkDataElement>(entity);
             linkDataBuffer.EnsureCapacity(bufferCapacity);
 
             return linkDataBuffer;
         }
         public static void PrepareEntityForLinking(this ref EntityCommandBuffer ecb, Entity entity, int bufferCapacity = 1)
         {
-            var linkDataBuffer = ecb.AddBuffer<LinkDataElement>(entity);
+            ecb.AddComponent(entity, new ComponentTypes(ComponentType.ReadOnly<LinkedEntityTag>(), ComponentType.ReadOnly<LinkDataElement>()));
+            var linkDataBuffer = ecb.SetBuffer<LinkDataElement>(entity);
             linkDataBuffer.EnsureCapacity(bufferCapacity);
-            ecb.AddComponent<LinkedEntityTag>(entity);
         }
         #endregion
     }
